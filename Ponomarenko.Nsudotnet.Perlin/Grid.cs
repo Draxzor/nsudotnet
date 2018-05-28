@@ -1,60 +1,38 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Ponomarenko.Nsudotnet.Perlin
 {
     class Grid
     {
-        private byte[] ImageBytes;
+        private byte[,] _controlPoints;
 
-        private byte[,] ControlPoints;
+        private Random _randomizer;
 
-        private Random Randomizer;
+        private int _size;
 
-        private int Size;
+        private int _step;
+
+        private int _rank;
 
         public Grid(int size, int rank)
         {
-            Size = size;
-            ImageBytes = new byte[size * size];
+            _rank = rank;
+            _size = size;
             // rank is a number of cells, so we need rank + 1 knots
-            // we set size to rank + 2, because when we get closer to the edge of an image we might have blank space
-            // because we already drawn a grid. So, we need 1 "invisible" knot, so that we can interpolate colors on the edge
-            ControlPoints = new byte[rank + 2, rank + 2];
-            Randomizer = new Random();
-            int step = (int)Math.Ceiling((float)size / rank);
+            // we set size to rank + 3, because of bicubical interpolation.
+            // There must be something to interpolate when we get closer to the edges of an image.
+            // We need 1 "invisible" row of knots on each edge, so that we can interpolate colors properly
+            _controlPoints = new byte[_rank + 3, _rank + 3];
+            _randomizer = new Random();
+            _step = (int)Math.Ceiling((float)size / _rank);
 
-            for (int i = 0; i < rank + 2; i++)
+            for (int i = 0; i < _rank + 3; i++)
             {
-                for (int j = 0; j < rank + 2; j++)
+                for (int j = 0; j < _rank + 3; j++)
                 {
-                    ControlPoints[i, j] = (byte)Randomizer.Next(50, 255);
+                    _controlPoints[i, j] = (byte)_randomizer.Next(50, 255);
                 }
-            }
-            int globalY = 0;
-
-            for (int j = 0; j < size; j ++)
-            {
-                int globalX = 0;
-                globalY = j / step;
-                int localY = j % step;
-                float yCoef = (float)localY / step;    
-                
-                if (j == size - 1)
-                {
-                    globalY = rank - 1;
-                    yCoef = 1.0F;
-                }    
-
-                for (int i = 0; i < size - 1; i ++) {
-                    globalX = i / step;
-                    //inside square
-                    int localX = i % step;
-                    float xCoef = (float)localX / step;
-                    byte up = Intepolate(ControlPoints[globalX, globalY], ControlPoints[globalX + 1, globalY], xCoef);
-                    byte bottom = Intepolate(ControlPoints[globalX, globalY + 1], ControlPoints[globalX + 1, globalY + 1], xCoef);
-                    ImageBytes[j * size + i] = Intepolate(up, bottom, yCoef);
-                }
-                ImageBytes[j * size + size - 1] = Intepolate(ControlPoints[rank, globalY], ControlPoints[rank, globalY + 1], yCoef);
             }
         }
 
@@ -63,6 +41,46 @@ namespace Ponomarenko.Nsudotnet.Perlin
             return (byte)(left + (right - left) * coef);
         }
 
-        public byte GetColor(int x, int y) { return ImageBytes[y * Size + x]; }
+        private byte CubicInterpolate(byte[] knotValues, float localCoord)
+        {
+            return (byte)(knotValues[1] + (-0.5 * knotValues[0] + 0.5 * knotValues[2]) * localCoord
+        + (knotValues[0] - 2.5 * knotValues[1] + 2.0 * knotValues[2] - 0.5 * knotValues[3]) * localCoord * localCoord
+        + (-0.5 * knotValues[0] + 1.5 * knotValues[1] - 1.5 * knotValues[2] + 0.5 * knotValues[3]) * localCoord * localCoord * localCoord);
+        }
+
+        private byte BicubicInterpolate(List<byte[]> knotValues, float localX, float localY)
+        {
+            byte[] tmp = new byte[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                tmp[i] = CubicInterpolate(knotValues[i], localY);
+            }
+
+            return CubicInterpolate(tmp, localX);
+        }
+
+        public byte GetColor(int x, int y)
+        {
+            int globalY = y / _step + 1;
+            int localY = y % _step;
+            float yCoef = (float)localY / _step;
+            int globalX = x / _step + 1;
+            int localX = x % _step;
+            float xCoef = (float)localX / _step;
+            List<byte[]> knotValues = new List<byte[]>(4);
+
+            for (int i = 0; i < 4; i++)
+            {
+                knotValues.Add(new byte[4]);
+
+                for (int j = 0; j < 4; j++)
+                {
+                    knotValues[i][j] = _controlPoints[globalX - 1 + i, globalY - 1 + j];
+                }
+            }
+
+            return BicubicInterpolate(knotValues, localX, localY);
+        }
     }
 }

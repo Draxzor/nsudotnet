@@ -7,7 +7,13 @@ namespace Ponomarenko.Nsudotnet.Perlin
     {
         static void Main(string[] args)
         {
-            int size = Convert.ToInt32(args[0]);
+            int size;
+
+            if (!Int32.TryParse(args[0], out size))
+                throw new ArgumentException("First argument is not a number");
+            else if (size <= 0)
+                throw new ArgumentException("Size should be greater than zero");
+
             string fileName = args[1];
             int initialRank = 9;
             //int size = 750;
