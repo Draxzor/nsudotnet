@@ -107,7 +107,7 @@ namespace Ponomarenko.Nsudotnet.NumberGuesser
                     Console.WriteLine("Congrats! You win this time.");
                     // failuresCount include those times when user input was incorrect
                     // if it's needed to count only correct inputs, just replace failuresCount with History.Count() 
-                    Console.WriteLine($"You failed {failuresCount} times, and it took {playingTime.Minutes} minutes and {playingTime.Seconds} seconds. Here is your history:");
+                    Console.WriteLine($"You failed {failuresCount} times, and it took {(int)playingTime.TotalMinutes} minutes and {playingTime.Seconds} seconds. Here is your history:");
 
                     foreach (byte i in History)
                     {
