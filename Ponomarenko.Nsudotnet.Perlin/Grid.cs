@@ -36,11 +36,6 @@ namespace Ponomarenko.Nsudotnet.Perlin
             }
         }
 
-        private byte Intepolate(byte left, byte right, float coef)
-        {
-            return (byte)(left + (right - left) * coef);
-        }
-
         private byte CubicInterpolate(byte[] knotValues, float localCoord)
         {
             return (byte)(knotValues[1] + (-0.5 * knotValues[0] + 0.5 * knotValues[2]) * localCoord
