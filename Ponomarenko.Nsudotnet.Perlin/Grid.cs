@@ -38,9 +38,9 @@ namespace Ponomarenko.Nsudotnet.Perlin
 
         private byte CubicInterpolate(byte[] knotValues, float localCoord)
         {
-            return (byte)(knotValues[1] + (-0.5 * knotValues[0] + 0.5 * knotValues[2]) * localCoord
+            return CutColor((int)(knotValues[1] + (-0.5 * knotValues[0] + 0.5 * knotValues[2]) * localCoord
         + (knotValues[0] - 2.5 * knotValues[1] + 2.0 * knotValues[2] - 0.5 * knotValues[3]) * localCoord * localCoord
-        + (-0.5 * knotValues[0] + 1.5 * knotValues[1] - 1.5 * knotValues[2] + 0.5 * knotValues[3]) * localCoord * localCoord * localCoord);
+        + (-0.5 * knotValues[0] + 1.5 * knotValues[1] - 1.5 * knotValues[2] + 0.5 * knotValues[3]) * localCoord * localCoord * localCoord));
         }
 
         private byte BicubicInterpolate(List<byte[]> knotValues, float localX, float localY)
@@ -75,7 +75,15 @@ namespace Ponomarenko.Nsudotnet.Perlin
                 }
             }
 
-            return BicubicInterpolate(knotValues, localX, localY);
+            return BicubicInterpolate(knotValues, xCoef, yCoef);
+        }
+
+        private byte CutColor(int value)
+        {
+            if (value > 255) return 255;
+            if (value < 0) return 0;
+
+            return (byte)value;
         }
     }
 }

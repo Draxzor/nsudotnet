@@ -15,9 +15,9 @@ namespace Ponomarenko.Nsudotnet.Perlin
                 throw new ArgumentException("Size should be greater than zero");
 
             string fileName = args[1];
-            int initialRank = 9;
+            int initialRank = 5;
             //int size = 750;
-            float a = 0.1F, b = 0.15F, c = 0.45F;
+            float a = 0.5F, b = 0.25F, c = 0.15F;
             Bitmap bitmap = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
             int[,] colors = new int[3, size * size];
